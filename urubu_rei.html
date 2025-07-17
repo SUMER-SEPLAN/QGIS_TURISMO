@@ -1,0 +1,520 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <link href="https://fonts.googleapis.com/css2?family=IM+Fell+English+SC&display=swap" rel="stylesheet">
+    <title>Cachoeira do Urubu Rei - Pedro II</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: 'Arial', sans-serif;
+            background: linear-gradient(135deg, #ffffff, #ffffff);
+            min-height: 100vh;
+            padding: 16px; 
+            text-align: center; 
+            overflow-x: hidden; 
+        }
+
+        .header {
+            background:#3074AC;
+            color: white;
+            padding: 16px 24px; 
+            text-align: center; 
+            position: relative;
+            border-radius: 16px; 
+            display: inline-block; 
+        }
+
+        .header h1 {
+            font-family: 'IM Fell English SC', serif;
+            color: rgb(0, 0, 0);
+            font-size: 1.8em; 
+            font-weight: bold;
+            text-shadow: 1.6px 1.6px 3.2px rgba(0,0,0,0.3); 
+            letter-spacing: 0.8px; 
+        }
+
+        .main-content {
+            display: grid;
+            grid-template-columns: 2fr 1fr; 
+            gap: 16px; 
+            min-height: 400px; 
+            margin-top: 16px; 
+            max-width: 960px; 
+            margin-left: auto; 
+            margin-right: auto; 
+        }
+
+        .content-area { 
+            display: flex;
+            flex-direction: column; 
+            gap: 16px; 
+        }
+
+        .video-section { 
+            position: relative;
+            background: #000;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            overflow: hidden;
+            border-radius: 8px; 
+            box-shadow: 0 3.2px 12px rgba(0,0,0,0.2); 
+            height: 320px; 
+            width: 100%; 
+        }
+
+        .video-container { 
+            display: flex;
+            width: 100%;
+            height: 100%;
+            transition: transform 0.5s ease-in-out;
+            position: absolute; 
+            left: 0;
+        }
+
+        .carousel-image { 
+            min-width: 100%;
+            height: 100%;
+            object-fit: cover; 
+            border-radius: 8px; 
+            flex-shrink: 0;
+        }
+
+        .info-card {
+            background: #3074AC;
+            margin-bottom: 12px; 
+            padding: 12px 16px; 
+            border-radius: 12px; 
+            display: flex;
+            align-items: center;
+            gap: 12px; 
+            box-shadow: 0 3.2px 12px rgba(0,0,0,0.1); 
+            transition: all 0.3s ease;
+            backdrop-filter: blur(8px); 
+            position: relative; 
+        }
+
+        .new-info-icon {
+            position: absolute; 
+            top: 4px; 
+            right: 4px; 
+            width: 16px; 
+            height: 16px; 
+            background-image: url('images/info.png'); 
+            background-size: contain; 
+            background-repeat: no-repeat;
+            background-position: center;
+            cursor: help; 
+        }
+
+        .info-section .info-card:first-child {
+            margin-top: 0;
+        }
+
+        .info-card:hover {
+            transform: translateY(-1.6px); 
+            box-shadow: 0 4.8px 16px rgba(0,0,0,0.15); 
+        }
+
+        .info-icon {
+            width: 32px; 
+            height: 32px; 
+            background-size: contain;
+            background-repeat: no-repeat;
+            background-position: center;
+            flex-shrink: 0;
+        }
+
+        .icon-address { background-image: url('images/address.png'); }
+        .icon-hiking { background-image: url('images/hiking.png'); }
+        .icon-ticket { background-image: url('images/ticket.png'); }
+        .icon-calendar { background-image: url('images/calendar.png'); }
+
+        .info-text {
+            flex: 1;
+        }
+
+        .info-title {
+            font-weight: bold;
+            color: #ffffff;
+            font-size: 0.9em; 
+            margin-bottom: 1.6px; 
+        }
+
+        .info-subtitle {
+            color: #ffffff;
+            font-size: 0.75em; 
+        }
+
+        .difficulty-text {
+            color: #FF4444;
+            font-weight: bold;
+        }
+
+        .qr-section {
+            text-align: center;
+            margin-top: 16px; 
+        }
+
+        .qr-section a {
+            display: inline-block;
+            text-decoration: none;
+        }
+
+        .qr-code {
+            height: 144px; 
+            width: 144px; 
+            background-image: url('images/qrcode.png');
+            background-size: contain;
+            background-position: center;
+            background-repeat: no-repeat;
+            margin: 0 auto;
+            border-radius: 8px; 
+            box-shadow: 0 3.2px 12px rgba(0,0,0,0.1); 
+            transition: all 0.3s ease;
+        }
+
+        .qr-section a:hover .qr-code {
+            transform: scale(1.04); 
+            box-shadow: 0 6.4px 20px rgba(0,0,0,0.15); 
+        }
+
+        .description {
+            background: #3074AC;
+            color: white;
+            padding: 20px 24px; 
+            font-size: 0.9em; 
+            line-height: 1.6; 
+            text-align: justify;
+            border-radius: 16px; 
+            width: 100%; 
+        }
+
+        .info-popup {
+            display: none; 
+            position: absolute; 
+            /* REMOVIDAS AS PROPRIEDADES top e right fixas do CSS */
+            background-color: rgba(0, 0, 0, 0.85); 
+            color: white;
+            padding: 8px; 
+            border-radius: 6px; 
+            font-size: 0.7em; 
+            width: 160px; 
+            text-align: center;
+            box-shadow: 0 3.2px 8px rgba(0, 0, 0, 0.3); 
+            z-index: 2000; 
+            opacity: 0; 
+            transform: translateY(-8px); 
+            transition: opacity 0.3s ease, transform 0.3s ease; 
+        }
+
+        .info-popup.show {
+            display: block; 
+            opacity: 1; 
+            transform: translateY(0); 
+        }
+
+        /* Responsividade */
+        @media (max-width: 768px) {
+            .main-content {
+                grid-template-columns: 1fr; 
+                gap: 12px; 
+                padding: 0 8px; 
+            }
+            
+            .header h1 {
+                font-size: 1.5em; 
+            }
+            
+            .info-card {
+                margin: 8px 0; 
+                padding: 10px 12px; 
+            }
+            
+            .description {
+                padding: 16px; 
+                font-size: 0.8em; 
+            }
+
+            .video-section {
+                height: 240px; 
+            }
+            .qr-section {
+                margin-top: 12px; 
+            }
+        }
+
+        @media (max-width: 480px) {
+            body {
+                padding: 8px; 
+            }
+            
+            .main-content {
+                gap: 8px; 
+                padding: 0 4px; 
+            }
+
+            .header {
+                padding: 12px 16px; 
+            }
+            
+            .header h1 {
+                font-size: 1.2em; 
+            }
+            
+            .video-section {
+                height: 160px; 
+            }
+            .qr-section {
+                margin-top: 8px; 
+            }
+            .info-popup {
+                width: 120px; 
+                font-size: 0.6em; 
+            }
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <div class="header">
+            <h1>CACHOEIRA DO URUBU REI - PEDRO II</h1>
+        </div>
+        
+        <div class="main-content">
+            <div class="content-area"> 
+                <div class="video-section"> 
+                    <div class="video-container" id="carouselContainer">
+                        </div>
+                </div>
+                
+                <div class="description"> 
+                    Localizada no coração da Serra dos Matões, com águas claras e perenes, encontramos a maior cachoeira do Piauí, a Cachoeira do Urubu Rei. O local é um paraíso para os amantes de natureza e aventura, tendo além de sua cascata principal com quase 70 metros de altura, uma série de outros destinos, como mirantes, cachoeiras e piscinas naturais.
+                </div>
+            </div>
+            
+            <div class="info-section"> 
+                <div class="info-card">
+                    <div class="info-icon icon-address"></div>
+                    <div class="info-text">
+                        <div class="info-title">Trilha de 2,4 KM</div>
+                        <div class="info-subtitle">(40 a 60 minutos)</div>
+                    </div>
+                    <div class="new-info-icon" id="infoTrigger"></div> 
+                </div>
+                
+                <div class="info-card">
+                    <div class="info-icon icon-hiking"></div>
+                    <div class="info-text">
+                        <div class="info-title difficulty-text">Nível difícil</div>
+                        <div class="info-subtitle">(recomendado guia)</div>
+                    </div>
+                </div>
+                
+                <div class="info-card">
+                    <div class="info-icon icon-ticket"></div>
+                    <div class="info-text">
+                        <div class="info-title">Entrada Livre</div>
+                    </div>
+                </div>
+                
+                <div class="info-card">
+                    <div class="info-icon icon-calendar"></div>
+                    <div class="info-text">
+                        <div class="info-title">Disponível</div>
+                        <div class="info-title">o ano todo</div>
+                    </div>
+                </div>
+                
+                <div class="qr-section">
+                    <a href="https://maps.app.goo.gl/tetggYb4WgPns3sr6" target="_blank" rel="noopener noreferrer">
+                        <div class="qr-code"></div>
+                    </a>
+                </div>
+            </div>
+        </div>
+        <div class="info-popup" id="infoPopup">
+            O ponto de partida da trilha está localizado a 14,3 quilômetros da cidade.
+        </div>
+    </div>
+
+    <script>
+        // Array com os caminhos das suas imagens (use caminhos reais para suas imagens)
+        const images = [
+            'images/urubu_rei01.jpg',
+            'images/urubu_rei02.png',
+            'images/urubu_rei03.jpg',
+            // Adicione mais caminhos de imagem aqui
+        ];
+
+        let currentImageIndex = 0;
+        const carouselContainer = document.getElementById('carouselContainer');
+        let intervalId;
+
+        // Função para carregar as imagens no carrossel
+        function loadCarouselImages() {
+            carouselContainer.innerHTML = '';
+            images.forEach(src => {
+                const img = document.createElement('img');
+                img.src = src;
+                img.alt = 'Cachoeira do Urubu Rei';
+                img.classList.add('carousel-image');
+                carouselContainer.appendChild(img);
+            });
+            startImageCarousel();
+        }
+
+        // Função para exibir uma imagem específica no carrossel
+        function showImage(index) {
+            if (index >= images.length) {
+                currentImageIndex = 0;
+            } else if (index < 0) {
+                currentImageIndex = images.length - 1;
+            } else {
+                currentImageIndex = index;
+            }
+            const offset = -currentImageIndex * 100; 
+            carouselContainer.style.transform = `translateX(${offset}%)`;
+        }
+
+        // Função para iniciar a passagem automática das imagens
+        function startImageCarousel() {
+            clearInterval(intervalId); 
+            intervalId = setInterval(() => {
+                showImage(currentImageIndex + 1);
+            }, 3000); // Troca de imagem a cada 3 segundos
+        }
+
+        // Animação de entrada suave para o contêiner principal da página
+        window.addEventListener('load', function() {
+            const container = document.querySelector('.container');
+            container.style.opacity = '0';
+            container.style.transform = 'translateY(30px)';
+            container.style.transition = 'all 0.8s ease';
+            
+            setTimeout(() => {
+                container.style.opacity = '1';
+                container.style.transform = 'translateY(0)';
+            }, 100);
+
+            loadCarouselImages();
+        });
+
+        // Adicionar efeitos de hover e animações para os cards de informação
+        document.querySelectorAll('.info-card').forEach(card => {
+            card.addEventListener('mouseenter', function() {
+                this.style.transform = 'translateY(-3px) scale(1.02)';
+            });
+            
+            card.addEventListener('mouseleave', function() {
+                this.style.transform = 'translateY(0) scale(1)';
+            });
+        });
+
+        // Script do Pop-up de Informação
+        document.addEventListener('DOMContentLoaded', () => {
+            const infoTrigger = document.getElementById('infoTrigger');
+            const infoPopup = document.getElementById('infoPopup');
+
+            if (infoTrigger && infoPopup) {
+                // Função para posicionar o pop-up
+                const positionPopup = () => {
+                    const rect = infoTrigger.getBoundingClientRect(); // Obtém a posição e o tamanho do ícone na viewport
+                    const margin = 5; // Pequena margem em pixels para espaçamento
+
+                    // --- Depuração: ANTES de qualquer cálculo ---
+                    console.log(`--- Antes da posição ---`);
+                    console.log(`Trigger Rect: top=${rect.top}, left=${rect.left}, width=${rect.width}, height=${rect.height}`);
+                    console.log(`Popup Size (Lido AGORA): width=${infoPopup.offsetWidth}, height=${infoPopup.offsetHeight}`);
+                    console.log(`Window Scroll: X=${window.scrollX}, Y=${window.scrollY}`);
+                    // --- Fim da Depuração ---
+
+                    // CALCULOS PARA "ACIMA E À ESQUERDA"
+
+                    // Posição vertical:
+                    let popupTop = rect.top + window.scrollY - infoPopup.offsetHeight - margin;
+
+                    // Posição horizontal:
+                    let popupLeft = rect.left + window.scrollX - infoPopup.offsetWidth - margin;
+                    
+                    // --- Verificações para manter o pop-up dentro da tela ---
+
+                    if (popupTop < window.scrollY + margin) { 
+                        popupTop = rect.top + window.scrollY + rect.height + margin; 
+                    }
+
+                    if (popupLeft < window.scrollX + margin) { 
+                        popupLeft = window.scrollX + margin; 
+                    }
+                    else if (popupLeft + infoPopup.offsetWidth > window.innerWidth - margin) {
+                        popupLeft = window.innerWidth - infoPopup.offsetWidth - margin; 
+                    }
+
+                    infoPopup.style.top = `${popupTop}px`;
+                    infoPopup.style.left = `${popupLeft}px`;
+
+                    // --- Depuração: APÓS aplicar a posição ---
+                    console.log(`Calculado e Aplicado: Top=${popupTop}px, Left=${popupLeft}px`);
+                    console.log(`--- Fim da chamada positionPopup ---`);
+                    // --- Fim da Depuração ---
+                };
+
+                // --- AJUSTE CRÍTICO AQUI: Chamar positionPopup com um pequeno atraso ---
+                // Para mouseenter
+                infoTrigger.addEventListener('mouseenter', () => {
+                    infoPopup.classList.add('show'); // Primeiro, torna o pop-up visível
+                    setTimeout(() => { // Em seguida, com um pequeno atraso, calcula e aplica a posição
+                        positionPopup();
+                    }, 0); // Atraso de 0ms empurra a execução para a próxima "tarefa" da fila do navegador
+                });
+
+                // Para mouseleave
+                infoTrigger.addEventListener('mouseleave', () => {
+                    infoPopup.classList.remove('show');
+                });
+
+                // Para click
+                infoTrigger.addEventListener('click', (event) => {
+                    infoPopup.classList.toggle('show');
+                    if (infoPopup.classList.contains('show')) { // Se o pop-up for visível
+                        setTimeout(() => { // Calcula e aplica a posição
+                            positionPopup();
+                        }, 0);
+                    }
+                    event.stopPropagation(); 
+                });
+
+                // Opcional: Esconder pop-up se clicar fora dele
+                document.addEventListener('click', (event) => {
+                    if (!infoPopup.contains(event.target) && !infoTrigger.contains(event.target)) {
+                        infoPopup.classList.remove('show');
+                    }
+                });
+
+                // Reposicionar o pop-up se a tela for redimensionada ou rolada
+                window.addEventListener('resize', () => {
+                    if (infoPopup.classList.contains('show')) {
+                        setTimeout(() => { // Adicionar setTimeout aqui também
+                            positionPopup();
+                        }, 0);
+                    }
+                });
+                window.addEventListener('scroll', () => {
+                    if (infoPopup.classList.contains('show')) {
+                        setTimeout(() => { // Adicionar setTimeout aqui também
+                            positionPopup();
+                        }, 0);
+                    }
+                });
+            }
+        });
+    </script>
+</body>
+</html>

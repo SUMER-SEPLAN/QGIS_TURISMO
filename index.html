@@ -19,6 +19,39 @@
             padding: 0;
             margin: 0;
         }
+        /* USAR NO NOVO PROJETO INICIO */
+        /* Estilo para o novo modal genérico */
+        #generic-modal {
+            display: none;
+            position: fixed;
+            z-index: 9999;
+            top: 0;
+            left: 0;
+            width: 100vw;
+            height: 100vh;
+            background: rgba(0,0,0,0.8);
+            justify-content: center;
+            align-items: center;
+        }
+        #modal-content {
+            max-width: 98vw !important;
+            max-height: 98vh !important;
+            box-shadow: 0 0 20px #000;
+            display: flex; /* Para centralizar o conteúdo interno */
+            justify-content: center;
+            align-items: center;
+        }
+        #modal-content iframe {
+    width: 55vw;
+    height: 70vh;
+    border-radius: 20px;
+}
+
+#modal-content img {
+    width: 100%;
+    height: auto;
+}
+        /* USAR NO NOVO PROJETO FIM */
         </style>
         <title>MAPA DE TURISMO DO PIAUÍ</title>
     </head>
@@ -75,9 +108,24 @@
         <script src="data/Fevereiro_37.js"></script>
         <script src="data/Janeiro_38.js"></script>
         <script>
-        var map = L.map('map', {
-            zoomControl:false, maxZoom:28, minZoom:1
-        }).fitBounds([[-11.133231443850002,-49.74741820231402],[-2.5452774601499275,-36.65129835068588]]);
+         //USAR NO NOVO PROJETO - INICIO
+        // Defina os bounds iniciais
+var initialBounds = [[-18, -60], [10, -30]];
+if (window.innerWidth <= 600) {
+    initialBounds = [[-16, -62], [4, -23]];
+}
+
+var map = L.map('map', {
+    zoomControl: false,
+    maxZoom: 28,
+    minZoom: 1, // valor temporário
+    maxBounds: initialBounds,
+    maxBoundsViscosity: 1.0
+}).fitBounds([[-12.5, -45.5], [-2.5, -40.5]]);
+
+// Defina o minZoom para o zoom atual após o fitBounds
+map.options.minZoom = map.getZoom();
+//USAR NO NOVO PROJETO - FIM
         var hash = new L.Hash(map);
         map.attributionControl.setPrefix('<a href="https://github.com/tomchadwin/qgis2web" target="_blank">qgis2web</a> &middot; <a href="https://leafletjs.com" title="A JS library for interactive maps">Leaflet</a> &middot; <a href="https://qgis.org">QGIS</a>');
         var autolinker = new Autolinker({truncate: {length: 30, location: 'smart'}});
@@ -2293,7 +2341,57 @@
 			});
 			layer.bindPopup(content, { maxHeight: 400 });
         }
+// USAR NO NOVO PROJETO INICIO
+function pop_Cachoeiras_25(feature, layer) {
+    let popupContent; // Variável que guardará o HTML do popup
 
+    // Pega o nome da cachoeira para a verificação
+    const nomeCachoeira = feature.properties['Cachoeira'] || feature.properties['Nome'] || '';
+
+    // SE a cachoeira for a "Cachoeira do Urubu Rei"
+    if (nomeCachoeira === 'Cachoeira do Urubu Rei') {
+        // Monta o popup ESPECIAL com a imagem
+        const nomeCidade = feature.properties['Cidade'];
+        const imgHtml = '<img src="images/urubu_rei.png" alt="Cachoeira do Urubu Rei" style="width:200px; height:auto; cursor:pointer;" onclick="abrirConteudoNoModal(\'iframe\', \'urubu_rei.html\')"><br>';
+        
+        popupContent = 
+            '<b>' + (nomeCidade ? nomeCidade : '') + '</b><br>' +
+            '<span style="font-size:1.1em;color:#1a5e2a;"><b>' + nomeCachoeira + '</b></span><br>' +
+            imgHtml;
+
+    } else {
+        // SENÃO, monta o popup PADRÃO com a tabela de informações para todas as outras
+        popupContent = '<table>\
+                          <tr>\
+                              <td colspan="2"><strong>Cidade</strong><br />' + (feature.properties['Cidade'] !== null ? autolinker.link(String(feature.properties['Cidade'])) : '') + '</td>\
+                          </tr>\
+                          <tr>\
+                              <td colspan="2"><strong>Nome</strong><br />' + (feature.properties['Nome'] !== null ? autolinker.link(String(feature.properties['Nome'])) : '') + '</td>\
+                          </tr>\
+                          <tr>\
+                              <td colspan="2"><strong>Época do Ano com Água</strong><br />' + (feature.properties['Época do Ano com Água'] !== null ? autolinker.link(String(feature.properties['Época do Ano com Água'])) : '') + '</td>\
+                          </tr>\
+                          <tr>\
+                              <td colspan="2"><strong>Trilha</strong><br />' + (feature.properties['Trilha'] !== null ? autolinker.link(String(feature.properties['Trilha'])) : '') + '</td>\
+                          </tr>\
+                          <tr>\
+                              <td colspan="2"><strong>Nível</strong><br />' + (feature.properties['Nível'] !== null ? autolinker.link(String(feature.properties['Nível'])) : '') + '</td>\
+                          </tr>\
+                          <tr>\
+                              <th scope="row">Entrada</th>\
+                              <td>' + (feature.properties['Entrada'] !== null ? autolinker.link(String(feature.properties['Entrada'])) : '') + '</td>\
+                          </tr>\
+                      </table>';
+    }
+
+    // O código abaixo é padrão e aplica o conteúdo gerado ao popup
+    var content = removeEmptyRowsFromPopupContent(popupContent, feature);
+    layer.on('popupopen', function(e) {
+        addClassToPopupIfMedia(content, e.popup);
+    });
+    layer.bindPopup(content, { maxHeight: 400 });
+}
+// USAR NO NOVO PROJETO FIM
         function style_Cachoeiras_25_0() {
             return {
                 pane: 'pane_Cachoeiras_25',
@@ -3085,6 +3183,151 @@
         });
         lay.addTo(map);
         setBounds();
+        //usar no novo projeto inicio
+        </script>
+        
+<div id="generic-modal">
+    <div id="modal-content"></div>
+</div>
+
+<script>
+    var genericModal = document.getElementById('generic-modal');
+    var modalContent = document.getElementById('modal-content');
+    var escalaAtual = 1;
+    var isDragging = false;
+    var lastX = 0, lastY = 0;
+    var posX = 0, posY = 0;
+
+    // Função para abrir o modal com conteúdo dinâmico (imagem ou iframe)
+    function abrirConteudoNoModal(type, src) {
+        // Limpa o conteúdo anterior
+        modalContent.innerHTML = '';
+        
+        // Reseta transformações para nova exibição
+        escalaAtual = 1;
+        posX = 0;
+        posY = 0;
+        modalContent.style.transform = 'scale(1) translate(0px,0px)';
+        modalContent.style.transformOrigin = '50% 50%';
+        modalContent.style.cursor = 'pointer';
+
+        if (type === 'image') {
+            const img = document.createElement('img');
+            img.src = src;
+            img.style.maxWidth = '90vw';
+            img.style.maxHeight = '90vh';
+            modalContent.appendChild(img);
+        } else if (type === 'iframe') {
+            const iframe = document.createElement('iframe');
+            iframe.src = src;
+            iframe.frameBorder = "0"; // remove a borda padrão do iframe
+            iframe.allowFullscreen = true; // permite fullscreen, se desejado
+            iframe.style.width = '100% !important';
+            iframe.style.height = '100% !important';
+            iframe.style.display = 'block !important';
+            modalContent.appendChild(iframe);
+            // Disable zoom and drag for iframes as they handle their own scrolling/interaction
+            modalContent.style.cursor = 'default';
+        }
+
+        genericModal.style.display = 'flex';
+    }
+
+    // Fecha o modal ao clicar fora do conteúdo
+    genericModal.onclick = function(e) {
+        if (e.target === this) {
+            genericModal.style.display = 'none';
+            modalContent.innerHTML = ''; // Limpa o conteúdo ao fechar
+        }
+    };
+
+    // Previne o fechamento do modal ao clicar no conteúdo (imagem ou iframe)
+    modalContent.addEventListener('click', function(e) {
+        e.stopPropagation();
+    });
+
+    // Zoom com scroll do mouse (aplicado apenas se o conteúdo for uma imagem)
+    modalContent.addEventListener('wheel', function(e) {
+        // Only apply zoom/drag if the content is an image, not an iframe
+        if (modalContent.querySelector('img')) {
+            e.preventDefault();
+            modalContent.style.transformOrigin = '50% 50%';
+            var zoomFactor = 1.1;
+            if (e.deltaY < 0) {
+                escalaAtual *= zoomFactor;
+            } else {
+                escalaAtual /= zoomFactor;
+                if (escalaAtual < 1) escalaAtual = 1;
+            }
+            // Se o zoom voltou para 1, centraliza
+            if (escalaAtual === 1) {
+                posX = 0;
+                posY = 0;
+            }
+            modalContent.style.transform = 'scale(' + escalaAtual + ') translate(' + posX + 'px,' + posY + 'px)';
+        }
+    });
+
+    // Arrasto do conteúdo (aplicado apenas se o conteúdo for uma imagem)
+    modalContent.addEventListener('mousedown', function(e) {
+        if (modalContent.querySelector('img') && escalaAtual > 1) {
+            isDragging = true;
+            lastX = e.clientX;
+            lastY = e.clientY;
+            modalContent.style.cursor = 'grab';
+            e.preventDefault();
+        }
+    });
+    document.addEventListener('mousemove', function(e) {
+        if (isDragging) {
+            var dx = e.clientX - lastX;
+            var dy = e.clientY - lastY;
+            lastX = e.clientX;
+            lastY = e.clientY;
+            posX += dx;
+            posY += dy;
+            modalContent.style.transform = 'scale(' + escalaAtual + ') translate(' + posX + 'px,' + posY + 'px)';
+        }
+    });
+    document.addEventListener('mouseup', function() {
+        if (isDragging) {
+            isDragging = false;
+            modalContent.style.cursor = 'pointer';
+        }
+    });
+
+    // Touch events for pinch-to-zoom and drag (aplicado apenas se o conteúdo for uma imagem)
+    let touchStartDist = 0;
+    let initialScale = 1;
+
+    modalContent.addEventListener('touchstart', function (e) {
+        if (modalContent.querySelector('img') && e.touches.length === 2) {
+            e.preventDefault();
+            touchStartDist = getTouchDistance(e.touches[0], e.touches[1]);
+            initialScale = escalaAtual;
+        }
+    }, { passive: false });
+
+    modalContent.addEventListener('touchmove', function (e) {
+        if (modalContent.querySelector('img') && e.touches.length === 2) {
+            e.preventDefault();
+            const currentDist = getTouchDistance(e.touches[0], e.touches[1]);
+            const scaleChange = currentDist / touchStartDist;
+            escalaAtual = Math.max(1, initialScale * scaleChange);
+            // Se o zoom voltou para 1, centraliza
+            if (escalaAtual === 1) {
+                posX = 0;
+                posY = 0;
+            }
+            modalContent.style.transform = `scale(${escalaAtual}) translate(${posX}px, ${posY}px)`;
+        }
+    }, { passive: false });
+
+    function getTouchDistance(touch1, touch2) {
+        const dx = touch2.clientX - touch1.clientX;
+        const dy = touch2.clientY - touch1.clientY;
+        return Math.sqrt(dx * dx + dy * dy);
+    }
         </script>
     </body>
 </html>
