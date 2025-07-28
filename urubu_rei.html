@@ -5,6 +5,7 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <link href="https://fonts.googleapis.com/css2?family=IM+Fell+English+SC&display=swap" rel="stylesheet">
     <title>Cachoeira do Urubu Rei - Pedro II</title>
+    <script src="https://www.youtube.com/iframe_api"></script>
     <style>
         * {
             margin: 0;
@@ -78,6 +79,13 @@
             position: absolute; 
             left: 0;
         }
+        
+        .carousel-item {
+            min-width: 100%;
+            height: 100%;
+            flex-shrink: 0;
+            position: relative;
+        }
 
         .carousel-image { 
             min-width: 100%;
@@ -85,6 +93,11 @@
             object-fit: cover; 
             border-radius: 8px; 
             flex-shrink: 0;
+        }
+        
+        .youtube-video, #player {
+            width: 100%;
+            height: 100%;
         }
 
         .info-card {
@@ -200,7 +213,6 @@
         .info-popup {
             display: none; 
             position: absolute; 
-            /* REMOVIDAS AS PROPRIEDADES top e right fixas do CSS */
             background-color: rgba(0, 0, 0, 0.85); 
             color: white;
             padding: 8px; 
@@ -346,53 +358,106 @@
     </div>
 
     <script>
-        // Array com os caminhos das suas imagens (use caminhos reais para suas imagens)
-        const images = [
-            'images/urubu_rei01.jpg',
-            'images/urubu_rei02.png',
-            'images/urubu_rei03.jpg',
-            // Adicione mais caminhos de imagem aqui
+        // Array com os itens do carrossel (imagens e vídeo)
+        const items = [
+            // O VÍDEO AGORA É O PRIMEIRO ITEM
+            // IMPORTANTE: Substitua "ID_DO_SEU_VIDEO_AQUI" pelo ID real do seu vídeo do YouTube
+            { type: 'youtube', videoId: 'NzlVkSz5NqA' }, 
+            { type: 'image', src: 'images/urubu_rei01.jpg' },
+            { type: 'image', src: 'images/urubu_rei02.png' },
+            { type: 'image', src: 'images/urubu_rei03.jpg' },
         ];
 
-        let currentImageIndex = 0;
+        let currentItemIndex = 0;
         const carouselContainer = document.getElementById('carouselContainer');
         let intervalId;
+        let player; // Variável para o player do YouTube
 
-        // Função para carregar as imagens no carrossel
-        function loadCarouselImages() {
-            carouselContainer.innerHTML = '';
-            images.forEach(src => {
-                const img = document.createElement('img');
-                img.src = src;
-                img.alt = 'Cachoeira do Urubu Rei';
-                img.classList.add('carousel-image');
-                carouselContainer.appendChild(img);
+        // Função para carregar os itens no carrossel
+        function loadCarouselItems() {
+            carouselContainer.innerHTML = ''; // Limpa o contêiner
+
+            items.forEach(item => {
+                const itemDiv = document.createElement('div');
+                itemDiv.classList.add('carousel-item');
+
+                if (item.type === 'image') {
+                    const img = document.createElement('img');
+                    img.src = item.src;
+                    img.alt = 'Cachoeira do Urubu Rei';
+                    img.classList.add('carousel-image');
+                    itemDiv.appendChild(img);
+                } else if (item.type === 'youtube') {
+                    itemDiv.classList.add('youtube-video');
+                    const playerDiv = document.createElement('div');
+                    playerDiv.id = 'player'; // ID que a API do YouTube usará
+                    itemDiv.appendChild(playerDiv);
+                }
+                carouselContainer.appendChild(itemDiv);
             });
-            startImageCarousel();
         }
 
-        // Função para exibir uma imagem específica no carrossel
-        function showImage(index) {
-            if (index >= images.length) {
-                currentImageIndex = 0;
-            } else if (index < 0) {
-                currentImageIndex = images.length - 1;
-            } else {
-                currentImageIndex = index;
+        // Função chamada pela API do YouTube quando o player estiver pronto
+        function onYouTubeIframeAPIReady() {
+            const youtubeItem = items.find(item => item.type === 'youtube');
+            if (youtubeItem) {
+                player = new YT.Player('player', {
+                    height: '100%',
+                    width: '100%',
+                    videoId: youtubeItem.videoId,
+                    playerVars: {
+                        'playsinline': 1,
+                        'controls': 1 
+                    },
+                    events: {
+                        'onStateChange': onPlayerStateChange
+                    }
+                });
             }
-            const offset = -currentImageIndex * 100; 
+        }
+
+        // Função para controlar o carrossel baseado no estado do vídeo
+        function onPlayerStateChange(event) {
+            // Se o vídeo estiver tocando, pausa o carrossel
+            if (event.data == YT.PlayerState.PLAYING) {
+                clearInterval(intervalId);
+            } 
+            // Se o vídeo for pausado ou terminar, reinicia o carrossel
+            else if (event.data == YT.PlayerState.PAUSED || event.data == YT.PlayerState.ENDED) {
+                startCarousel();
+            }
+        }
+
+        // Função para mostrar um item específico do carrossel
+        function showItem(index) {
+            if (index >= items.length) {
+                currentItemIndex = 0;
+            } else if (index < 0) {
+                currentItemIndex = items.length - 1;
+            } else {
+                currentItemIndex = index;
+            }
+
+            // Pausa o vídeo se o slide atual não for o do vídeo
+            if (player && typeof player.pauseVideo === 'function') {
+                if (items[currentItemIndex].type !== 'youtube') {
+                    player.pauseVideo();
+                }
+            }
+
+            const offset = -currentItemIndex * 100;
             carouselContainer.style.transform = `translateX(${offset}%)`;
         }
 
-        // Função para iniciar a passagem automática das imagens
-        function startImageCarousel() {
+        // Função para iniciar a transição automática do carrossel
+        function startCarousel() {
             clearInterval(intervalId); 
             intervalId = setInterval(() => {
-                showImage(currentImageIndex + 1);
-            }, 3000); // Troca de imagem a cada 3 segundos
+                showItem(currentItemIndex + 1);
+            }, 3000); // Muda de item a cada 3 segundos
         }
 
-        // Animação de entrada suave para o contêiner principal da página
+        // Animação de entrada e inicialização
         window.addEventListener('load', function() {
             const container = document.querySelector('.container');
             container.style.opacity = '0';
@@ -404,10 +469,17 @@
                 container.style.transform = 'translateY(0)';
             }, 100);
 
-            loadCarouselImages();
+            loadCarouselItems();
+            
+            if (typeof YT === 'undefined' || typeof YT.Player === 'undefined') {
+                // A API do YouTube ainda não foi carregada, ela chamará onYouTubeIframeAPIReady automaticamente quando estiver.
+            } else {
+                onYouTubeIframeAPIReady();
+            }
+            startCarousel();
         });
 
-        // Adicionar efeitos de hover e animações para os cards de informação
+        // Efeitos de hover nos cards de informação
         document.querySelectorAll('.info-card').forEach(card => {
             card.addEventListener('mouseenter', function() {
                 this.style.transform = 'translateY(-3px) scale(1.02)';
@@ -418,33 +490,36 @@
             });
         });
 
-        // Script do Pop-up de Informação
+        // Script do Pop-up e CORREÇÃO DO BUG DE TELA CHEIA
         document.addEventListener('DOMContentLoaded', () => {
             const infoTrigger = document.getElementById('infoTrigger');
             const infoPopup = document.getElementById('infoPopup');
 
+            // --- INÍCIO DA CORREÇÃO DO BUG DE TELA CHEIA ---
+            // Este código ouve por eventos de mudança de tela cheia.
+            document.addEventListener('fullscreenchange', () => {
+                // Se não há mais nenhum elemento em tela cheia, significa que o usuário saiu dela.
+                if (!document.fullscreenElement) {
+                    // Verifica se o player de vídeo existe
+                    if (player && typeof player.getIframe === 'function') {
+                        const iframe = player.getIframe();
+                        // Força o navegador a redesenhar o vídeo, "escondendo" e "mostrando-o" rapidamente.
+                        // Isso resolve o bug onde apenas o som toca após sair da tela cheia.
+                        iframe.style.display = 'none';
+                        setTimeout(() => {
+                            iframe.style.display = 'block';
+                        }, 50);
+                    }
+                }
+            });
+            // --- FIM DA CORREÇÃO DO BUG DE TELA CHEIA ---
+
             if (infoTrigger && infoPopup) {
-                // Função para posicionar o pop-up
                 const positionPopup = () => {
-                    const rect = infoTrigger.getBoundingClientRect(); // Obtém a posição e o tamanho do ícone na viewport
-                    const margin = 5; // Pequena margem em pixels para espaçamento
-
-                    // --- Depuração: ANTES de qualquer cálculo ---
-                    console.log(`--- Antes da posição ---`);
-                    console.log(`Trigger Rect: top=${rect.top}, left=${rect.left}, width=${rect.width}, height=${rect.height}`);
-                    console.log(`Popup Size (Lido AGORA): width=${infoPopup.offsetWidth}, height=${infoPopup.offsetHeight}`);
-                    console.log(`Window Scroll: X=${window.scrollX}, Y=${window.scrollY}`);
-                    // --- Fim da Depuração ---
-
-                    // CALCULOS PARA "ACIMA E À ESQUERDA"
-
-                    // Posição vertical:
+                    const rect = infoTrigger.getBoundingClientRect();
+                    const margin = 5;
                     let popupTop = rect.top + window.scrollY - infoPopup.offsetHeight - margin;
-
-                    // Posição horizontal:
                     let popupLeft = rect.left + window.scrollX - infoPopup.offsetWidth - margin;
-                    
-                    // --- Verificações para manter o pop-up dentro da tela ---
 
                     if (popupTop < window.scrollY + margin) { 
                         popupTop = rect.top + window.scrollY + rect.height + margin; 
@@ -459,60 +534,41 @@
 
                     infoPopup.style.top = `${popupTop}px`;
                     infoPopup.style.left = `${popupLeft}px`;
-
-                    // --- Depuração: APÓS aplicar a posição ---
-                    console.log(`Calculado e Aplicado: Top=${popupTop}px, Left=${popupLeft}px`);
-                    console.log(`--- Fim da chamada positionPopup ---`);
-                    // --- Fim da Depuração ---
                 };
 
-                // --- AJUSTE CRÍTICO AQUI: Chamar positionPopup com um pequeno atraso ---
-                // Para mouseenter
-                infoTrigger.addEventListener('mouseenter', () => {
-                    infoPopup.classList.add('show'); // Primeiro, torna o pop-up visível
-                    setTimeout(() => { // Em seguida, com um pequeno atraso, calcula e aplica a posição
-                        positionPopup();
-                    }, 0); // Atraso de 0ms empurra a execução para a próxima "tarefa" da fila do navegador
-                });
+                const showAndPositionPopup = () => {
+                    infoPopup.classList.add('show');
+                    setTimeout(positionPopup, 0);
+                };
 
-                // Para mouseleave
+                infoTrigger.addEventListener('mouseenter', showAndPositionPopup);
+
                 infoTrigger.addEventListener('mouseleave', () => {
                     infoPopup.classList.remove('show');
                 });
 
-                // Para click
                 infoTrigger.addEventListener('click', (event) => {
-                    infoPopup.classList.toggle('show');
-                    if (infoPopup.classList.contains('show')) { // Se o pop-up for visível
-                        setTimeout(() => { // Calcula e aplica a posição
-                            positionPopup();
-                        }, 0);
+                    event.stopPropagation();
+                    const isShown = infoPopup.classList.toggle('show');
+                    if (isShown) {
+                        setTimeout(positionPopup, 0);
                     }
-                    event.stopPropagation(); 
                 });
 
-                // Opcional: Esconder pop-up se clicar fora dele
                 document.addEventListener('click', (event) => {
                     if (!infoPopup.contains(event.target) && !infoTrigger.contains(event.target)) {
                         infoPopup.classList.remove('show');
                     }
                 });
 
-                // Reposicionar o pop-up se a tela for redimensionada ou rolada
-                window.addEventListener('resize', () => {
+                const repositionPopup = () => {
                     if (infoPopup.classList.contains('show')) {
-                        setTimeout(() => { // Adicionar setTimeout aqui também
-                            positionPopup();
-                        }, 0);
+                        setTimeout(positionPopup, 0);
                     }
-                });
-                window.addEventListener('scroll', () => {
-                    if (infoPopup.classList.contains('show')) {
-                        setTimeout(() => { // Adicionar setTimeout aqui também
-                            positionPopup();
-                        }, 0);
-                    }
-                });
+                };
+
+                window.addEventListener('resize', repositionPopup);
+                window.addEventListener('scroll', repositionPopup);
             }
         });
     </script>
